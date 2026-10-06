@@ -2,6 +2,7 @@ from machine import ADC, Pin
 import time
 import dht
 import neopixel
+import random
 
 NAME = "ESP 32 A"
 THRESHOLD = 1300
@@ -59,6 +60,14 @@ def evacuation_gradient_lights(danger_zone):
     strip[i] = (r, g, b)
 strip.write()
 
+evacuation_gradient_lights()
+
+def get_smoke_desnity(room, smokeVal):
+    return room, smokeVal
+
+def get_cafe_temp(temp):
+    msg = "cafeteria temprature"
+    return msg, temp
 
 def potentialFireMsg(room, smokeVal):
     print(f"Fire in room: {room}, and smoke density: {smokeVal}")
@@ -85,6 +94,8 @@ def run_fire_safety_system():
         for name, adc in sensors.items():
             current_reading[name] = adc.read()
 
+
+
         highestRoom = max(current_reading, key=current_reading.get)
         highestValue = current_reading[highestRoom]
 
@@ -98,7 +109,7 @@ def run_fire_safety_system():
             print("Cafeteria Temp: ERROR")
 
         fire_by_smoke = highestValue > THRESHOLD
-        fire_by_temp = temp_valid and temp > 50
+        fire_by_temp = temp_valid and temp > 55
 
         if fire_by_smoke or fire_by_temp:
 
@@ -117,3 +128,11 @@ def run_fire_safety_system():
         time.sleep(1)
 
 run_fire_safety_system()
+
+def get_amount_of_people():
+    people = random.randint(1, 430)
+    return people
+
+def get_amount_of_heads_in_class():
+    heads = random.randint(1, 43)
+    return heads

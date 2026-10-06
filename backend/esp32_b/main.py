@@ -26,6 +26,8 @@ def potentialFireMsg(room, smokeVal):
     print(f"Data from: {NAME}")
     print("Starting Buzzer sounds...")
 
+def get_smoke_desnity(room, smokeVal):
+    return room, smokeVal
 
 def run_fire_safety_system():
     buzzer_state = 0
