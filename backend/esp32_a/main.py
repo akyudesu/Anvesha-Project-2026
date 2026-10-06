@@ -82,6 +82,7 @@ def SuddenTemperatureIncrease(temp, key):
     if key == "ESP 32 A":
         print(f"Sudden increase in temperature in cafe! Current: {temp}°C. Start evacuation!")
 
+
 def run_fire_safety_system(key):
     if key == "ESP 32 A":
         buzzer_state = 0
