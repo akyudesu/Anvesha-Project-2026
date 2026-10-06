@@ -30,7 +30,7 @@ dht_sensor = dht.DHT22(Pin(23))
 
 print("Monitoring all zones...")
 
-def evacuation_gradient_lights(danger_zone, key):
+def evacuation_gradient_lights(danger_zone, key): #CHANGES LIGHT GRADIENT ACCORDING TO SMOKE AND TEMPRATURE
     if key == "ESP 32 A":
         for i in range(NUM_LEDS):
 
@@ -61,27 +61,27 @@ def evacuation_gradient_lights(danger_zone, key):
         strip[i] = (r, g, b)
 strip.write()
 
-evacuation_gradient_lights("ESP 32 A")
-
-def get_smoke_desnity(room, smokeVal, key):
+def get_smoke_desnitya(room, smokeVal, key): #GETS SMOKE DENSITY IN THE ROOM
     if key == "ESP 32 A":
         return room, smokeVal
 
-def get_cafe_temp(temp, key):
+def get_cafe_temp(temp, key): #GETS CAFE TEMPRATURE
     if key == "ESP 32 A":
         msg = "cafeteria temprature"
         return msg, temp
 
-def potentialFireMsg(room, smokeVal, key):
+def potentialFireMsga(room, smokeVal, key): #POTENTIAL FIRE MSG AND SARTS BUZZER
     if key == "ESP 32 A":
-        print(f"Fire in room: {room}, and smoke density: {smokeVal}")
-        print(f"Data from: {NAME}")
-        print("Starting Buzzer sounds...")
+        msg_A = f"Fire in room: {room}, and smoke density: {smokeVal}"
+        msg_B = f"Data from: {NAME}"
+        msg_C = "Starting Buzzer sounds..."
+                
+        return msg_A, msg_B, msg_C
 
-def SuddenTemperatureIncrease(temp, key):
+def SuddenTemperatureIncrease(temp, key): #POTENTIAL FIRE IN CAFE AND BUZZER
     if key == "ESP 32 A":
-        print(f"Sudden increase in temperature in cafe! Current: {temp}°C. Start evacuation!")
-
+        msg_A = f"Sudden increase in temperature in cafe! Current: {temp}°C. Start evacuation!"
+        return msg_A
 
 def run_fire_safety_system(key):
     if key == "ESP 32 A":
@@ -121,7 +121,7 @@ def run_fire_safety_system(key):
             if fire_by_smoke or fire_by_temp:
 
                 if fire_by_smoke:
-                    potentialFireMsg(highestRoom, highestValue)
+                    potentialFireMsga(highestRoom, highestValue, "ESP 32 A")
                 if fire_by_temp:
                     SuddenTemperatureIncrease(temp)
 
@@ -136,12 +136,12 @@ def run_fire_safety_system(key):
 
 run_fire_safety_system("ESP 32 A")
 
-def get_amount_of_people(key):
+def get_amount_of_people(key): #RANDOM AMOUNT OF PEOPLE IN BLOCK A,B,C,D
     if key == "ESP 32 A":
         people = random.randint(1, 430)
         return people
 
-def get_amount_of_heads_in_class(key):
+def get_amount_of_students(key): #RANDOM AMOUNT OF HEADS IN A CLASS
     if key == "ESP 32 A":
         heads = random.randint(1, 43)
         return heads

@@ -1,4 +1,4 @@
-from machine import ADC, Pin  #Machine is a module in ESP32 and ADC [ANALOG TO DIGITAL CONVERTER] and Pins are the pins on the board
+from machine import ADC, Pin  # type: ignore #Machine is a module in ESP32 and ADC [ANALOG TO DIGITAL CONVERTER] and Pins are the pins on the board
 import time #Impports time
 import random #For getting random numbers
 
@@ -21,17 +21,19 @@ for sensor, pin in mq2_sensors.items():
 
 print("Monitoring all zones...")
 
-def potentialFireMsg(room, smokeVal, key):
+def potentialFireMsg(room, smokeVal, key):#POTENTIAL FIREE
     if key == "ESP 32 B":
-        print(f"Fire in room: {room}, and smoke density: {smokeVal}")
-        print(f"Data from: {NAME}")
-        print("Starting Buzzer sounds...")
+        msg_A = f"Fire in room: {room}, and smoke density: {smokeVal}"
+        msg_B = f"Data from: {NAME}"
+        msg_C = "Starting Buzzer sounds..."
+        
+        return msg_A, msg_B, msg_C
 
-def get_smoke_desnity(room, smokeVal, key):
+def get_smoke_desnity(room, smokeVal, key): #GETS SMOKE DENSITY
     if key == "ESP 32 B":
         return room, smokeVal
 
-def run_fire_safety_system(key):
+def run_fire_safety_system(key): #CONTINOULY RUNS AND FIRES A FUNCTION DEPENDING ON SMOKE
     if key == "ESP 32 B":
         buzzer_state = 0
 
@@ -66,12 +68,12 @@ def run_fire_safety_system(key):
 
 run_fire_safety_system("ESP 32 B")
 
-def get_amount_of_people(key):
+def get_amount_of_peopleb(key): #GETS RANDOM AMOUNT OF PEOPLE IN BLOCK E,F
     if key == "ESP 32 B":
         people = random.randint(1, 430)
         return people
 
-def get_amount_of_heads_in_class(key):
+def get_amount_of_heads_in_class(key): # RANDOM AMOUNT OF PEOPLE IN A CLASS
     if key == "ESP 32 B":
         heads = random.randint(1, 43)
         return heads
