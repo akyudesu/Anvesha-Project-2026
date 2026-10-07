@@ -7,21 +7,24 @@ class Login extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Container(
-          width: double.infinity,
-          height: double.infinity,
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage('2.jpg'),
-              fit: BoxFit.cover,
-            ),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/2.jpg'),
+            fit: BoxFit.cover,
           ),
-
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [LoginCard()],
+        ),
+        child: DecoratedBox(
+          decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.55)),
+          child: const SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.all(20),
+                child: LoginCard(),
+              ),
+            ),
           ),
         ),
       ),

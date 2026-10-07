@@ -1,7 +1,7 @@
-// ignore_for_file: deprecated_member_use
-
+import 'package:fire_evacuation_app/core/supabase_service.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginCard extends StatefulWidget {
   const LoginCard({super.key});
@@ -11,9 +11,11 @@ class LoginCard extends StatefulWidget {
 }
 
 class _LoginCardState extends State<LoginCard> {
+  final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _isSigningIn = false;
 
   @override
   void dispose() {
@@ -22,200 +24,156 @@ class _LoginCardState extends State<LoginCard> {
     super.dispose();
   }
 
+  Future<void> _signIn() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _isSigningIn = true);
+    try {
+      await SupabaseService.signIn(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+      if (!mounted) return;
+      Navigator.of(context).pushReplacementNamed('/dashboard');
+    } on AuthException catch (error) {
+      _showMessage(error.message);
+    } catch (error) {
+      _showMessage('Unable to sign in. Please try again. ($error)');
+    } finally {
+      if (mounted) setState(() => _isSigningIn = false);
+    }
+  }
+
+  Future<void> _sendPasswordReset() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty || !email.contains('@')) {
+      _showMessage('Enter your account email first to reset your password.');
+      return;
+    }
+    try {
+      await SupabaseService.sendPasswordReset(email);
+      _showMessage('Password reset instructions have been sent to $email.');
+    } on AuthException catch (error) {
+      _showMessage(error.message);
+    } catch (error) {
+      _showMessage(
+        'Unable to send reset instructions. Please try again. ($error)',
+      );
+    }
+  }
+
+  void _showMessage(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.center,
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Container(
-          width: 600,
-          height: 600, // Standard responsive width for a card
-          padding: const EdgeInsets.all(28.0),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(28.0),
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFF0A121A), // Deep Charcoal
-                Color(0xFF0E2032), // Dark Slate Blue
-                Color(0xFF123652), // Muted Ocean Blue
-              ],
-              stops: [0.0, 0.5, 1.0],
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.4),
-                blurRadius: 25,
-                offset: const Offset(0, 15),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.max,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Title
-              const SizedBox(height: 22),
-
-              Text(
-                'Welcome Back',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
-                  color: Colors.white,
-                  fontSize: 26,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.5,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Sign in to your school account',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.inter(
-                  color: const Color(0xFF8A9AAD), // Muted Slate Gray
-                  fontSize: 14,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-              const SizedBox(height: 82),
-
-              // Email Input Field
-              TextField(
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                style: GoogleFonts.inter(color: Colors.white),
-                decoration: InputDecoration(
-                  hintText: 'Email Address',
-                  hintStyle: GoogleFonts.inter(color: const Color(0xFF627285)),
-                  prefixIcon: const Icon(
-                    Icons.email_outlined,
-                    color: Color(0xFF8A9AAD),
-                  ),
-                  filled: true,
-                  fillColor: Colors.black.withOpacity(0.2),
-                  contentPadding: const EdgeInsets.symmetric(
-                    vertical: 16,
-                    horizontal: 20,
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(
-                      color: Colors.white.withOpacity(0.1),
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: const BorderSide(
-                      color: Color(0xFF5CB5F2),
-                      width: 1.5,
-                    ), // Accent sky blue border on focus
-                  ),
-                ),
-              ),
-              const SizedBox(height: 26),
-
-              // Password Input Field
-              TextField(
-                controller: _passwordController,
-                obscureText: _obscurePassword,
-                style: GoogleFonts.inter(color: Colors.white),
-                decoration: InputDecoration(
-                  hintText: 'Password',
-                  hintStyle: GoogleFonts.inter(color: const Color(0xFF627285)),
-                  prefixIcon: const Icon(
-                    Icons.lock_outline,
-                    color: Color(0xFF8A9AAD),
-                  ),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscurePassword
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined,
-                      color: const Color(0xFF8A9AAD),
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _obscurePassword = !_obscurePassword;
-                      });
-                    },
-                  ),
-                  filled: true,
-                  fillColor: Colors.black.withOpacity(0.2),
-                  contentPadding: const EdgeInsets.symmetric(
-                    vertical: 16,
-                    horizontal: 20,
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(
-                      color: Colors.white.withOpacity(0.1),
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: const BorderSide(
-                      color: Color(0xFF5CB5F2),
-                      width: 1.5,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              // Forgot Password Button
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () {
-                    // Handle forgot password logic here
-                  },
-                  style: TextButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    minimumSize: const Size(0, 0),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  child: Text(
-                    'Forgot Password?',
-                    style: GoogleFonts.inter(
-                      color: const Color(
-                        0xFF5CB5F2,
-                      ), // Accent Sky Blue matching the sky background
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 48),
-
-              // Primary Sign In Button
-              ElevatedButton(
-                onPressed: () {
-                  // Handle authentication logic here
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(
-                    0xFFE63946,
-                  ), // Vibrant Red extracted from the school facade panels
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  elevation: 2,
-                ),
-                child: Text(
-                  'Sign In',
+    return Container(
+      height: 580,
+      width: 580,
+      child: Card(
+        color: const Color(0xF00E2032),
+        child: Padding(
+          padding: const EdgeInsets.all(30),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 18),
+                Text(
+                  'Welcome back',
+                  textAlign: TextAlign.center,
                   style: GoogleFonts.poppins(
-                    fontSize: 16,
+                    color: Colors.white,
+                    fontSize: 26,
                     fontWeight: FontWeight.w600,
-                    letterSpacing: 0.5,
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 7),
+                Text(
+                  'Sign in to the school safety command center',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.inter(
+                    color: const Color(0xFF8A9AAD),
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 48),
+                TextFormField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  textInputAction: TextInputAction.next,
+                  autofillHints: const [
+                    AutofillHints.username,
+                    AutofillHints.email,
+                  ],
+                  decoration: const InputDecoration(
+                    labelText: 'Email address',
+                    prefixIcon: Icon(Icons.email_outlined),
+                  ),
+                  validator: (value) {
+                    final email = value?.trim() ?? '';
+                    if (email.isEmpty || !email.contains('@')) {
+                      return 'Enter a valid email address.';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 27),
+                TextFormField(
+                  controller: _passwordController,
+                  obscureText: _obscurePassword,
+                  textInputAction: TextInputAction.done,
+                  autofillHints: const [AutofillHints.password],
+                  onFieldSubmitted: (_) => _isSigningIn ? null : _signIn(),
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: IconButton(
+                      tooltip: _obscurePassword
+                          ? 'Show password'
+                          : 'Hide password',
+                      onPressed: () =>
+                          setState(() => _obscurePassword = !_obscurePassword),
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
+                      ),
+                    ),
+                  ),
+                  validator: (value) => (value == null || value.isEmpty)
+                      ? 'Enter your password.'
+                      : null,
+                ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: _isSigningIn ? null : _sendPasswordReset,
+                    child: const Text('Forgot password?'),
+                  ),
+                ),
+                const SizedBox(height: 40),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    fixedSize: const Size.fromHeight(50),
+                  ),
+                  onPressed: _isSigningIn ? null : _signIn,
+                  child: _isSigningIn
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Sign in'),
+                ),
+              ],
+            ),
           ),
         ),
       ),
