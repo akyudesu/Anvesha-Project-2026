@@ -1,0 +1,7 @@
+fastapi
+uvicorn[standard]
+pydantic
+supabase
+postgrest
+python-dotenv
+opencv-python-headless
