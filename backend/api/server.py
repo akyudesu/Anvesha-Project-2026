@@ -82,7 +82,7 @@ async def get_smoke_density(key: str, room: str, smokeVal: int):
 async def get_cafe_temperature(key: str, temp: float):
     if key != ESP32_A:
         return {"error": "Cafeteria temperature is available from ESP 32 A only."}
-    return _cafe_temperature_response(temp)
+    return dd_cafe_temperature_response(temp)
 
 
 @app.post("/evacuation_lights")
@@ -134,7 +134,7 @@ async def process_sensor_readings(payload: SensorReadings):
             _smoke_fire_response(payload.key, highest_room, highest_value)
         )
     if payload.temp is not None:
-        result["temperature"] = _cafe_temperature_response(payload.temp)
+        result["temperature"] = dd_cafe_temperature_response(payload.temp)
         if temperature_alert:
             result["alerts"].append(result["temperature"])
     return result
@@ -149,5 +149,5 @@ async def potential_fire(
     if key == ESP32_A:
         if temp is None:
             return _smoke_fire_response(key, room, smokeVal)
-        return _cafe_temperature_response(temp)
+        return dd_cafe_temperature_response(temp)
     return {"error": "Invalid key parameter."}
