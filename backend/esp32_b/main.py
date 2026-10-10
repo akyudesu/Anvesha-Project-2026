@@ -1,79 +1,63 @@
-from machine import ADC, Pin  # type: ignore #Machine is a module in ESP32 and ADC [ANALOG TO DIGITAL CONVERTER] and Pins are the pins on the board
-import time #Impports time
-import random #For getting random numbers
+import json
+import time
 
-NAME = "ESP 32 B"
-THRESHOLD = 1300
+import urequests
+from machine import ADC, Pin
 
-buzzer = Pin(25, Pin.OUT)
-buzzer.value(0)
+import boot
+from device_config import API_URL, DEVICE_API_TOKEN
 
-mq2_sensors = {
+DEVICE_UID = "ESP 32 B"
+SMOKE_THRESHOLD = 1300
+PINS = {
     "BLOCK E": 32,
     "BLOCK F": 33,
 }
 
+buzzer = Pin(25, Pin.OUT)
+buzzer.value(0)
 sensors = {}
-for sensor, pin in mq2_sensors.items():
-    adc = ADC(Pin(pin))
-    adc.atten(ADC.ATTN_11DB)
-    sensors[sensor] = adc
+for zone_name, pin_number in PINS.items():
+    sensor = ADC(Pin(pin_number))
+    sensor.atten(ADC.ATTN_11DB)
+    sensors[zone_name] = sensor
 
-print("Monitoring all zones...")
 
-def potentialFireMsg(room, smokeVal, key):#POTENTIAL FIREE
-    if key == "ESP 32 B":
-        msg_A = f"Fire in room: {room}, and smoke density: {smokeVal}"
-        msg_B = f"Data from: {NAME}"
-        msg_C = "Starting Buzzer sounds..."
-        
-        return msg_A, msg_B, msg_C
+def post_sensor_readings(readings):
+    payload = {"key": DEVICE_UID, "readings": readings}
+    headers = {"Content-Type": "application/json"}
+    if DEVICE_API_TOKEN:
+        headers["X-Device-Token"] = DEVICE_API_TOKEN
 
-def get_smoke_desnity(room, smokeVal, key): #GETS SMOKE DENSITY
-    if key == "ESP 32 B":
-        return room, smokeVal
+    response = urequests.post(
+        API_URL,
+        data=json.dumps(payload),
+        headers=headers,
+    )
+    try:
+        if response.status_code < 200 or response.status_code >= 300:
+            raise OSError("Sensor API returned HTTP {}".format(response.status_code))
+        print("Sensor report stored:", response.text)
+    finally:
+        response.close()
 
-def run_fire_safety_system(key): #CONTINOULY RUNS AND FIRES A FUNCTION DEPENDING ON SMOKE
-    if key == "ESP 32 B":
-        buzzer_state = 0
 
-        while True:
-            current_reading = {}
-            for name, adc in sensors.items():
-                current_reading[name] = adc.read()
+def run_fire_safety_system():
+    boot.connect_wifi()
+    while True:
+        readings = {name: sensor.read() for name, sensor in sensors.items()}
+        fire_detected = any(
+            value > SMOKE_THRESHOLD for value in readings.values()
+        )
+        buzzer.value(1 if fire_detected else 0)
 
-            highestRoom = max(current_reading, key=current_reading.get)
-            highestValue = current_reading[highestRoom]
+        print("Smoke readings:", readings)
+        if boot.connect_wifi():
+            try:
+                post_sensor_readings(readings)
+            except OSError as error:
+                print("Sensor report failed; retrying next cycle:", error)
+        time.sleep(3)
 
-            print("\n------ ZONE OVERVIEW ------")
-            for name, value in current_reading.items():
-                print(f"{name}: {value}")
-            
 
-            fire_by_smoke = highestValue > THRESHOLD
-
-            if fire_by_smoke:
-
-                if fire_by_smoke:
-                    potentialFireMsg(highestRoom, highestValue)
-
-                buzzer_state = 1 - buzzer_state
-                buzzer.value(buzzer_state)
-            else:
-                print("System Status: No Fire Anywhere")
-                buzzer.value(0)
-                buzzer_state = 0
-
-            time.sleep(1)
-
-run_fire_safety_system("ESP 32 B")
-
-def get_amount_of_peopleb(key): #GETS RANDOM AMOUNT OF PEOPLE IN BLOCK E,F
-    if key == "ESP 32 B":
-        people = random.randint(1, 430)
-        return people
-
-def get_amount_of_heads_in_class(key): # RANDOM AMOUNT OF PEOPLE IN A CLASS
-    if key == "ESP 32 B":
-        heads = random.randint(1, 43)
-        return heads
+run_fire_safety_system()

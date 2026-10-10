@@ -12,5 +12,5 @@ dependencies = [
     "opencv-python-headless",
 ]
 
-[tool.vercel]
-entrypoint = "backend.api.server:app"
+[project.scripts]
+app = "backend.api.server:app"

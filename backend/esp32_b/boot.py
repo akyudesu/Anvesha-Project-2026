@@ -1,17 +1,24 @@
-import network
 import time
 
-sta = network.WLAN(network.STA_IF)
+import network
 
-SSID = "Anish's Phone"
-PASSWORD = 123456789
+from device_config import WIFI_PASSWORD, WIFI_SSID
 
-if not sta.connected():
-    sta.active(True)
-    sta.connect(SSID, PASSWORD)
 
-    while not wlan.isconnected():
-        time.sleep(2)
+def connect_wifi():
+    wlan = network.WLAN(network.STA_IF)
+    wlan.active(True)
+    if not wlan.isconnected():
+        wlan.connect(WIFI_SSID, WIFI_PASSWORD)
+        for _ in range(30):
+            if wlan.isconnected():
+                break
+            time.sleep(1)
+    if not wlan.isconnected():
+        print("Wi-Fi connection failed; sensor monitoring will continue offline.")
+        return False
+    print("Wi-Fi connected:", wlan.ifconfig())
+    return True
 
-print("CONNECTED SUCCESSFULLY")
-print("Network configuration (IP, Gateway, Mask, DNS):", wlan.ifconfig())
+
+connect_wifi()
