@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:fire_evacuation_app/core/fire_evacuation_api.dart';
 import 'package:fire_evacuation_app/core/supabase_service.dart';
@@ -23,28 +25,60 @@ class _DashboardState extends State<Dashboard> {
   String? _databaseError;
   String? _apiError;
   bool _isLoading = true;
+  bool _refreshInProgress = false;
+  Timer? _refreshTimer;
 
   @override
   void initState() {
     super.initState();
     _refreshData();
+    _refreshTimer = Timer.periodic(
+      const Duration(seconds: 10),
+      (_) => _refreshData(showLoading: false),
+    );
   }
 
-  Future<void> _refreshData() async {
-    setState(() {
-      _isLoading = true;
-      _databaseError = null;
-      _apiError = null;
-    });
-    await Future.wait([_loadDashboardData(), _loadApiStatus()]);
-    if (mounted) setState(() => _isLoading = false);
+  Future<void> _refreshData({bool showLoading = true}) async {
+    if (_refreshInProgress) return;
+    _refreshInProgress = true;
+    if (mounted) {
+      setState(() {
+        if (showLoading) _isLoading = true;
+        _databaseError = null;
+        _apiError = null;
+      });
+    }
+    try {
+      await Future.wait([_loadDashboardData(), _loadApiStatus()]);
+    } finally {
+      _refreshInProgress = false;
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadDashboardData() async {
     try {
-      final snapshot = await DashboardSnapshot.load();
+      final accessToken =
+          Supabase.instance.client.auth.currentSession?.accessToken;
+      if (accessToken == null) {
+        throw StateError('Sign in to load dashboard data.');
+      }
+      final response = await _api.getDashboardSnapshot(
+        accessToken: accessToken,
+      );
+      final snapshot = DashboardSnapshot.fromJson(response);
       if (mounted) setState(() => _snapshot = snapshot);
-    } on PostgrestException catch (error) {
+    } on DioException catch (error) {
+      if (mounted) {
+        setState(() => _databaseError = _apiErrorMessage(error));
+      }
+    } on FormatException catch (error) {
       if (mounted) setState(() => _databaseError = error.message);
     } on Exception catch (error) {
       if (mounted) setState(() => _databaseError = error.toString());
@@ -57,13 +91,27 @@ class _DashboardState extends State<Dashboard> {
       if (mounted) setState(() => _apiStatus = status);
     } on DioException catch (error) {
       if (mounted) {
-        setState(
-          () => _apiError = error.message ?? 'The fire server did not respond.',
-        );
+        setState(() => _apiError = _apiErrorMessage(error));
       }
     } on FormatException catch (error) {
       if (mounted) setState(() => _apiError = error.message);
     }
+  }
+
+  String _apiErrorMessage(DioException error) {
+    final responseData = error.response?.data;
+    if (responseData is Map<String, dynamic> &&
+        responseData['detail'] != null) {
+      return responseData['detail'].toString();
+    }
+    if (error.response == null) {
+      return 'Cannot reach the backend at ${_api.baseUrl}. Open '
+          '${_api.baseUrl}/status in a browser. If it is deployed on Vercel, '
+          'confirm the FastAPI app is the deployed project and the Vercel '
+          'environment variables are set. For local testing, start '
+          '`python -m backend.main` and pass API_BASE_URL to Flutter.';
+    }
+    return error.message ?? 'The backend request failed.';
   }
 
   Future<void> _signOut() async {
@@ -80,9 +128,9 @@ class _DashboardState extends State<Dashboard> {
 
   void _showError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Unable to sign out: $message')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Unable to sign out: $message')));
   }
 
   @override

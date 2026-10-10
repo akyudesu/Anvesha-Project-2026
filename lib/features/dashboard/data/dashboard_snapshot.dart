@@ -1,5 +1,3 @@
-import 'package:fire_evacuation_app/core/supabase_service.dart';
-
 class DashboardSnapshot {
   const DashboardSnapshot({
     required this.zones,
@@ -25,29 +23,41 @@ class DashboardSnapshot {
   final List<Map<String, dynamic>> routes;
   final Map<String, dynamic>? userProfile;
 
-  static Future<DashboardSnapshot> load() async {
-    final results = await Future.wait<List<Map<String, dynamic>>>([
-      SupabaseService.getZones(),
-      SupabaseService.getDevices(),
-      SupabaseService.getSensors(),
-      SupabaseService.getRecentSensorReadings(),
-      SupabaseService.getRecentOccupancyReadings(),
-      SupabaseService.getZoneRisks(),
-      SupabaseService.getActiveIncidents(),
-      SupabaseService.getActiveAlerts(),
-      SupabaseService.getRecommendedRoutes(),
-    ]);
+  factory DashboardSnapshot.fromJson(Map<String, dynamic> json) {
+    List<Map<String, dynamic>> rows(String key) {
+      final value = json[key];
+      if (value is! List) {
+        throw FormatException('Dashboard response is missing "$key".');
+      }
+      return value
+          .map((row) {
+            if (row is! Map) {
+              throw FormatException(
+                'Dashboard response contains an invalid row in "$key".',
+              );
+            }
+            return Map<String, dynamic>.from(row);
+          })
+          .toList(growable: false);
+    }
+
+    final profile = json['user_profile'];
+    if (profile != null && profile is! Map) {
+      throw const FormatException(
+        'Dashboard response contains an invalid user profile.',
+      );
+    }
     return DashboardSnapshot(
-      zones: results[0],
-      devices: results[1],
-      sensors: results[2],
-      sensorReadings: results[3],
-      occupancyReadings: results[4],
-      zoneRisks: results[5],
-      incidents: results[6],
-      alerts: results[7],
-      routes: results[8],
-      userProfile: await SupabaseService.getCurrentUserProfile(),
+      zones: rows('zones'),
+      devices: rows('devices'),
+      sensors: rows('sensors'),
+      sensorReadings: rows('sensor_readings'),
+      occupancyReadings: rows('occupancy_readings'),
+      zoneRisks: rows('zone_risks'),
+      incidents: rows('incidents'),
+      alerts: rows('alerts'),
+      routes: rows('routes'),
+      userProfile: profile == null ? null : Map<String, dynamic>.from(profile),
     );
   }
 

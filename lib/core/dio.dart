@@ -1,13 +1,4 @@
-
-
 import 'package:dio/dio.dart';
+import 'package:fire_evacuation_app/core/fire_evacuation_api.dart';
 
-final dio = Dio();
-
-void getHttp() async {
-  final response = await dio.get('https://dart.dev');
-  print(response);
-}
-void main() {
-  getHttp();
-}
+final dio = Dio(BaseOptions(baseUrl: FireEvacuationApi.defaultBaseUrl));

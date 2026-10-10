@@ -70,7 +70,7 @@ class _LoginCardState extends State<LoginCard> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       height: 580,
       width: 580,
       child: Card(

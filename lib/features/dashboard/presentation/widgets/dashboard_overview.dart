@@ -197,10 +197,7 @@ class _OverviewContent extends StatelessWidget {
             if (constraints.maxWidth < 900) {
               return Column(
                 children: [
-                  DashboardSchoolMapCard(
-                    zones: snapshot.zones,
-                    risksByZone: snapshot.risksByZone,
-                  ),
+                  CampusMapHazardApp(),
                   const SizedBox(height: 16),
                   DashboardRouteCard(
                     routes: snapshot.routes,
@@ -214,13 +211,7 @@ class _OverviewContent extends StatelessWidget {
             return Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  flex: 7,
-                  child: DashboardSchoolMapCard(
-                    zones: snapshot.zones,
-                    risksByZone: snapshot.risksByZone,
-                  ),
-                ),
+                Expanded(flex: 7, child: CampusMapHazardApp()),
                 const SizedBox(width: 16),
                 Expanded(
                   flex: 4,
@@ -252,10 +243,7 @@ class _LiveMapContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Column(
     children: [
-      DashboardSchoolMapCard(
-        zones: snapshot.zones,
-        risksByZone: snapshot.risksByZone,
-      ),
+      CampusMapHazardApp(),
       const SizedBox(height: 16),
       DashboardRouteCard(routes: snapshot.routes, zones: snapshot.zones),
     ],
@@ -611,7 +599,7 @@ class _ConnectionErrors extends StatelessWidget {
         children: [
           if (databaseError != null)
             Text(
-              'Supabase: $databaseError',
+              'Dashboard API: $databaseError',
               style: const TextStyle(fontSize: 12),
             ),
           if (apiError != null) ...[
@@ -683,6 +671,6 @@ String _profileSummary(Map<String, dynamic> profile) {
   if (profile['class'] != null) {
     details.add('Class ${profile['class']}');
   }
-  if (profile['class incharge'] == true) details.add('Class incharge');
+  if (profile['class_incharge'] == true) details.add('Class incharge');
   return details.isEmpty ? 'Profile loaded' : details.join(' · ');
 }

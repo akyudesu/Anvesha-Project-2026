@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class DashboardSidebar extends StatelessWidget {
   const DashboardSidebar({
@@ -38,20 +39,11 @@ class DashboardSidebar extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(20, 24, 16, 28),
             child: Row(
               children: [
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    color: colors.primary.withValues(alpha: 0.14),
-                    borderRadius: BorderRadius.circular(13),
-                  ),
-                  child: Icon(Icons.shield_rounded, color: colors.primary),
-                ),
                 const SizedBox(width: 12),
-                const Expanded(
+                Expanded(
                   child: Text(
                     'AEGIS GRID',
-                    style: TextStyle(
+                    style: GoogleFonts.poppins(
                       fontWeight: FontWeight.w700,
                       letterSpacing: 0.8,
                     ),

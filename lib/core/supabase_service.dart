@@ -23,7 +23,7 @@ class SupabaseService {
     if (user == null) return null;
     final profile = await _client
         .from('users')
-        .select()
+        .select('id,registered_at,designated_wing,class_incharge,class')
         .eq('id', user.id)
         .maybeSingle();
     return profile == null ? null : Map<String, dynamic>.from(profile);
@@ -37,13 +37,18 @@ class SupabaseService {
   }) async {
     final user = _client.auth.currentUser;
     if (user == null) throw StateError('Sign in before creating a profile.');
-    return _insert('users', {
-      'id': user.id,
-      'registered_at': registeredAt,
-      'designated_wing': designatedWing,
-      'class incharge': isClassIncharge,
-      'class': className,
-    });
+    final profile = await _client
+        .from('users')
+        .insert({
+          'id': user.id,
+          'registered_at': registeredAt,
+          'designated_wing': designatedWing,
+          'class_incharge': isClassIncharge,
+          'class': className,
+        })
+        .select('id,registered_at,designated_wing,class_incharge,class')
+        .single();
+    return Map<String, dynamic>.from(profile);
   }
 
   static Future<void> updateCurrentUserProfile({
@@ -55,7 +60,7 @@ class SupabaseService {
     if (user == null) throw StateError('Sign in before updating a profile.');
     final values = <String, dynamic>{
       'designated_wing': designatedWing,
-      'class incharge': isClassIncharge,
+      'class_incharge': isClassIncharge,
       'class': className,
     }..removeWhere((_, value) => value == null);
     if (values.isEmpty) return;

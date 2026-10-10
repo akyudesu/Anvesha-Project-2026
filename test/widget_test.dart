@@ -17,25 +17,35 @@ void main() {
     });
   }
 
-  testWidgets('campus map uses the provided image asset', (tester) async {
+  testWidgets('campus map uses the requested map and opens live details', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(
-          body: SingleChildScrollView(child: DashboardSchoolMapCard()),
+          body: SingleChildScrollView(child: CampusMapHazardApp()),
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    final gate = find.text('Gate No. 1');
+    expect(gate, findsOneWidget);
+    await tester.tap(gate);
+    await tester.pump(const Duration(milliseconds: 300));
 
     expect(
-      find.byWidgetPredicate(
-        (widget) =>
-            widget is Image &&
-            widget.image is AssetImage &&
-            (widget.image as AssetImage).assetName == 'assets/unnamed.png',
-      ),
+      find.text('Primary vehicular entrance and security booth.'),
       findsOneWidget,
     );
+    expect(find.text('Declare Danger Zone'), findsOneWidget);
+    await tester.tap(find.text('Declare Danger Zone'));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.tap(gate);
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('HAZARD DETECTED'), findsOneWidget);
+    expect(find.text('Clear Hazard (Mark Safe)'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

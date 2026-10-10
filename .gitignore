@@ -43,3 +43,9 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Local backend and ESP32 configuration
+.env
+backend/.env
+backend/esp32_a/device_config.py
+backend/esp32_b/device_config.py
