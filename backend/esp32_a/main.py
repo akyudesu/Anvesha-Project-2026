@@ -11,13 +11,10 @@ buzzer = Pin(25, Pin.OUT)
 buzzer.value(0)
 
 NUM_LEDS = 'x'
-strip = neopixel.NEOPIXEL(Pin(22), NUM_LEDS)
 
 mq2_sensors = {
     "BLOCK A": 32,
     "BLOCK B": 33,
-    "BLOCK C": 34,
-    "BLOCK D": 35,
 }
 
 sensors = {}
@@ -59,7 +56,6 @@ def evacuation_gradient_lights(danger_zone, key): #CHANGES LIGHT GRADIENT ACCORD
                 r, g, b = 0, 255, 0
 
         strip[i] = (r, g, b)
-strip.write()
 
 def get_smoke_desnitya(room, smokeVal, key): #GETS SMOKE DENSITY IN THE ROOM
     if key == "ESP 32 A":

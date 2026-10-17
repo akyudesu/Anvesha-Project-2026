@@ -9,8 +9,10 @@ buzzer = Pin(25, Pin.OUT)
 buzzer.value(0)
 
 mq2_sensors = {
-    "BLOCK E": 32,
-    "BLOCK F": 33,
+    "BLOCK A": 32,
+    "BLOCK B": 33,
+    "BLOCK C": 26,
+    "BLOCK D": 27,
 }
 
 sensors = {}
@@ -55,8 +57,7 @@ def run_fire_safety_system(key): #CONTINOULY RUNS AND FIRES A FUNCTION DEPENDING
             if fire_by_smoke:
 
                 if fire_by_smoke:
-                    potentialFireMsg(highestRoom, highestValue)
-
+                    potentialFireMsg(highestRoom, highestValue, "ESP 32 B")
                 buzzer_state = 1 - buzzer_state
                 buzzer.value(buzzer_state)
             else:
@@ -67,7 +68,6 @@ def run_fire_safety_system(key): #CONTINOULY RUNS AND FIRES A FUNCTION DEPENDING
             time.sleep(1)
 
 run_fire_safety_system("ESP 32 B")
-
 def get_amount_of_peopleb(key): #GETS RANDOM AMOUNT OF PEOPLE IN BLOCK E,F
     if key == "ESP 32 B":
         people = random.randint(1, 430)
